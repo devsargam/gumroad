@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_04_06_055017) do
+ActiveRecord::Schema[7.1].define(version: 2025_04_08_202911) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", limit: 191, null: false
     t.string "record_type", limit: 191, null: false
@@ -1111,6 +1111,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_04_06_055017) do
     t.index ["user_id"], name: "index_links_on_user_id"
   end
 
+  create_table "links_social_proof_widgets", id: false, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "social_proof_widget_id", null: false
+    t.bigint "link_id", null: false
+  end
+
   create_table "media_locations", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "product_file_id", null: false
     t.bigint "url_redirect_id", null: false
@@ -2064,6 +2069,18 @@ ActiveRecord::Schema[7.1].define(version: 2025_04_06_055017) do
     t.integer "sku_id"
     t.index ["sku_id"], name: "index_skus_variants_on_sku_id"
     t.index ["variant_id"], name: "index_skus_variants_on_variant_id"
+  end
+
+  create_table "social_proof_widgets", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "name"
+    t.boolean "universal"
+    t.string "title"
+    t.text "description"
+    t.string "cta_text"
+    t.string "cta_type"
+    t.string "image_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "staff_picked_products", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|

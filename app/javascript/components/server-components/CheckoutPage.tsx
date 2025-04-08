@@ -71,6 +71,16 @@ const GUMROAD_PARAMS = [
   "pay_in_installments",
 ];
 
+// Define the interface for SocialProofWidget data
+interface SocialProofWidgetProps {
+  name: string;
+  title: string;
+  cta_text: string;
+  cta_type: string;
+  image_type: string;
+  // Add other potential attributes if needed
+}
+
 type Props = {
   discover_url: string;
   countries: Record<string, string>;
@@ -89,6 +99,7 @@ type Props = {
   max_allowed_cart_products: number;
   tip_options: number[];
   default_tip_option: number;
+  social_proof_widgets: SocialProofWidgetProps[]; // Add social_proof_widgets to props
 };
 
 export type Result = { item: CartItem; result: LineItemResult };
@@ -155,6 +166,7 @@ export const CheckoutPage = ({
   max_allowed_cart_products,
   tip_options,
   default_tip_option,
+  social_proof_widgets,
   ...props
 }: Props) => {
   const user = useLoggedInUser();
@@ -229,6 +241,9 @@ export const CheckoutPage = ({
   const [redirecting, setRedirecting] = React.useState(false);
   const addThirdPartyAnalytics = useAddThirdPartyAnalytics();
   const [recommendedProducts, setRecommendedProducts] = React.useState<CardProduct[] | null>(null);
+
+  // Memoize the context value
+  const contextValue = React.useMemo(() => [state, dispatch] as const, [state, dispatch]);
 
   const completedOfferIds = React.useRef(new Set()).current;
   const [offers, setOffers] = React.useState<
@@ -611,7 +626,58 @@ export const CheckoutPage = ({
   };
 
   return (
-    <StateContext.Provider value={reducer}>
+    <StateContext.Provider value={contextValue}>
+      {/* Render Social Proof Section */}
+      {Array.isArray(social_proof_widgets) && social_proof_widgets.length > 0 && (
+        <div className="my-8 rounded border bg-white p-4 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold">Social Proof</h2>
+          <table className="divide-gray-200 min-w-full divide-y">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="text-gray-500 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                >
+                  Name
+                </th>
+                <th
+                  scope="col"
+                  className="text-gray-500 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                >
+                  Title
+                </th>
+                <th
+                  scope="col"
+                  className="text-gray-500 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                >
+                  CTA
+                </th>
+                <th
+                  scope="col"
+                  className="text-gray-500 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                >
+                  Image Type
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-gray-200 divide-y bg-white">
+              {social_proof_widgets.map((widget, index) => (
+                <tr key={index}>
+                  <td className="text-gray-900 whitespace-nowrap px-6 py-4 text-sm font-medium">
+                    {widget.name || "-"}
+                  </td>
+                  <td className="text-gray-500 whitespace-nowrap px-6 py-4 text-sm">{widget.title || "-"}</td>
+                  <td className="text-gray-500 whitespace-nowrap px-6 py-4 text-sm">
+                    {widget.cta_text || "-"} {widget.cta_type ? `(${widget.cta_type})` : ""}
+                  </td>
+                  <td className="text-gray-500 whitespace-nowrap px-6 py-4 text-sm">{widget.image_type || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {redirecting ? null : results ? (
         (!user && results.every(({ result }) => result.success && result.content_url != null)) ||
         results.some(
