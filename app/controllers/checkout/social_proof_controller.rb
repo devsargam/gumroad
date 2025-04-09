@@ -7,6 +7,7 @@ class Checkout::SocialProofController < Sellers::BaseController
     @title = "Social proof"
     @social_proof_props = Checkout::SocialProofPresenter.new(pundit_user:).social_proof_props
     @body_class = "fixed-aside"
+    @products = current_seller.products.order(:name)
     render :index
   end
 
@@ -15,6 +16,7 @@ class Checkout::SocialProofController < Sellers::BaseController
     @title = "Social Proof"
     pagination, offer_codes = fetch_offer_codes
     @presenter = Checkout::SocialProofPresenter.new(pundit_user:, offer_codes:, pagination:)
+    @products = current_seller.products.order(:name)
     render :index
   end
 

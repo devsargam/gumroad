@@ -11,8 +11,16 @@ class Checkout::SocialProofPresenter
 
   def social_proof_props
     seller = pundit_user.seller
-    products = seller.products.visible.order(created_at: :desc).to_a
-    cart_product = products.first
+    products = pundit_user.seller.products.visible.map do |product|
+      {
+        id: product.external_id,
+        name: product.name,
+        archived: product.archived?,
+        currency_type: product.price_currency_type,
+        url: product.long_url,
+        is_tiered_membership: product.is_tiered_membership?,
+      }
+    end
     {
       pages:,
       user: {
@@ -20,10 +28,8 @@ class Checkout::SocialProofPresenter
         recommendation_type: seller.recommendation_type,
         tipping_enabled: seller.tipping_enabled?,
       },
-      cart_item: cart_product.present? ? CheckoutPresenter.new(logged_in_user: nil, ip: nil, social_proof_widgets: []).checkout_product(cart_product, cart_product.cart_item({}), {}).merge({ quantity: 1, url_parameters: {}, referrer: "" }) : nil,
       custom_fields: seller.custom_fields.not_is_post_purchase.map(&:as_json),
-      card_product: cart_product.present? ? ProductPresenter.card_for_web(product: cart_product) : nil,
-      products: products.map { |product| { id: product.external_id, name: product.name, archived: product.archived? } },
+      products:,
     }
   end
 end
