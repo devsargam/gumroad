@@ -16,6 +16,7 @@ import BalancePage from "$app/components/server-components/BalancePage";
 import BundleEditPage from "$app/components/server-components/BundleEditPage";
 import DiscountsPage from "$app/components/server-components/CheckoutDashboard/DiscountsPage";
 import FormPage from "$app/components/server-components/CheckoutDashboard/FormPage";
+import SocialProofPage from "$app/components/server-components/CheckoutDashboard/SocialProofPage";
 import UpsellsPage from "$app/components/server-components/CheckoutDashboard/UpsellsPage";
 import CheckoutPage from "$app/components/server-components/CheckoutPage";
 import CollaboratorsPage from "$app/components/server-components/CollaboratorsPage";
@@ -105,6 +106,7 @@ ReactOnRails.register({
   DashboardPage,
   DeveloperWidgetsPage,
   DiscountsPage,
+  SocialProofPage,
   Discover,
   DiscoverProductPage,
   DiscoverWishlistPage,

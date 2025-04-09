@@ -677,7 +677,6 @@ export const CheckoutPage = ({
           </table>
         </div>
       )}
-
       {redirecting ? null : results ? (
         (!user && results.every(({ result }) => result.success && result.content_url != null)) ||
         results.some(
