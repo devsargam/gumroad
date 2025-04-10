@@ -10,6 +10,7 @@ import { register } from "$app/utils/serverComponentUtil";
 
 // import { useBundleEditContext } from "$app/components/BundleEdit/state";
 import { Button } from "$app/components/Button";
+import { SocialProofCard } from "$app/components/Checkout/SocialProofCard";
 import { Layout, Page } from "$app/components/CheckoutDashboard/Layout";
 import { Icon } from "$app/components/Icons";
 import { useLoggedInUser } from "$app/components/LoggedInUser";
@@ -17,6 +18,7 @@ import { useLoggedInUser } from "$app/components/LoggedInUser";
 import { ThumbnailEditor } from "$app/components/ProductEdit/ProductTab/ThumbnailEditor";
 import { Select } from "$app/components/Select";
 import { showAlert } from "$app/components/server-components/Alert";
+import { WithTooltip } from "$app/components/WithTooltip";
 // const nativeTypeThumbnails = require.context("$assets/images/native_types/thumbnails/");
 
 const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: Product[] }) => {
@@ -379,7 +381,23 @@ const Preview = () => (
   <aside aria-label="Preview">
     <header>
       <h2>Preview</h2>
+      <WithTooltip tip="Preview">
+        <Button onClick={() => {}}>
+          <Icon name="arrow-diagonal-up-right" />
+        </Button>
+      </WithTooltip>
     </header>
-    <div className="paragraphs">hello There</div>
+    <div className="paragraphs flex aspect-square items-center justify-center rounded border border-black">
+      <SocialProofCard
+        ctaType="button"
+        imageType="icon"
+        iconName="heart-fill"
+        iconColor="#379EA3"
+        title="Join 6,239 members today!"
+        description="Get lifetime access to the community and start your journey now."
+        buttonText="Purchase now"
+        buttonUrl="#"
+      />
+    </div>
   </aside>
 );
