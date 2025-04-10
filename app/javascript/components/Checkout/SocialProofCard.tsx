@@ -30,23 +30,24 @@ interface NoImageProps extends BaseSocialProofCardProps {
 
 interface ButtonCTAProps {
   ctaType: "button";
-  buttonText: string;
-  buttonUrl: string;
+  ctaText: string;
+  ctaUrl: string;
 }
 
 interface LinkCTAProps {
   ctaType: "link";
-  linkText: string;
-  linkUrl: string;
+  ctaText: string;
+  ctaUrl: string;
 }
 
 interface NoCTAProps {
   ctaType: "none";
 }
 
+type ImageTypeProps = ProductImageProps | CustomImageProps | IconImageProps | NoImageProps;
 type CTATypeProps = ButtonCTAProps | LinkCTAProps | NoCTAProps;
 
-type SocialProofCardProps = (ProductImageProps | CustomImageProps | IconImageProps | NoImageProps) & CTATypeProps;
+export type SocialProofCardProps = ImageTypeProps & CTATypeProps;
 
 export const SocialProofCard = (props: SocialProofCardProps) => {
   const { title, description } = props;
@@ -55,7 +56,7 @@ export const SocialProofCard = (props: SocialProofCardProps) => {
     switch (props.imageType) {
       case "product":
       case "custom":
-        return <img src={props.imageUrl} alt={title} />;
+        return <img src={props.imageUrl} />;
       case "icon":
         return (
           <div
@@ -74,14 +75,14 @@ export const SocialProofCard = (props: SocialProofCardProps) => {
     switch (props.ctaType) {
       case "button":
         return (
-          <NavigationButton href={props.buttonUrl} color="accent" className="w-full">
-            {props.buttonText}
+          <NavigationButton href={props.ctaUrl} color="accent" className="w-full">
+            {props.ctaText}
           </NavigationButton>
         );
       case "link":
         return (
-          <a href={props.linkUrl} className="text-sm font-bold text-teal-400 no-underline">
-            {props.linkText}
+          <a href={props.ctaUrl} className="text-sm font-bold text-teal-400 no-underline">
+            {props.ctaText}
           </a>
         );
       case "none":

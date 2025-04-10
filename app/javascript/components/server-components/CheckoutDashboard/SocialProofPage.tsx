@@ -1,6 +1,6 @@
 import cx from "classnames";
 import * as React from "react";
-import { createCast } from "ts-safe-cast";
+import { cast, createCast } from "ts-safe-cast";
 
 // import { PLACEHOLDER_CARD_PRODUCT, PLACEHOLDER_CART_ITEM } from "$app/utils/cart";
 // import { asyncVoid } from "$app/utils/promise";
@@ -11,6 +11,7 @@ import { register } from "$app/utils/serverComponentUtil";
 // import { useBundleEditContext } from "$app/components/BundleEdit/state";
 import { Button } from "$app/components/Button";
 import { SocialProofCard } from "$app/components/Checkout/SocialProofCard";
+import { useSocialProofCardPropsFromPreview } from "$app/components/Checkout/useSocialProofProps";
 import { Layout, Page } from "$app/components/CheckoutDashboard/Layout";
 import { Icon } from "$app/components/Icons";
 import { useLoggedInUser } from "$app/components/LoggedInUser";
@@ -21,11 +22,37 @@ import { showAlert } from "$app/components/server-components/Alert";
 import { WithTooltip } from "$app/components/WithTooltip";
 // const nativeTypeThumbnails = require.context("$assets/images/native_types/thumbnails/");
 
+// TODO: @sargam make this type more specific if possible
+// make this union discriminative
+type CtaType = { id: "button" | "link" | "none"; label: "Button" | "Link" | "None" };
+type ImageType = {
+  id: "product" | "custom" | "icon" | "none";
+  label: "Product image" | "Custom image" | "Icon" | "None";
+};
+type VisibilityType = {
+  id: "all" | "new" | "returning";
+  label: "All visitors" | "New visitors" | "Returning visitors";
+};
+
 const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: Product[] }) => {
   const loggedInUser = useLoggedInUser();
   // TODO: @sargam remove this
   const [view, setView] = React.useState<"list" | "create" | "edit">("create");
 
+  const [name, setName] = React.useState("");
+  const [titleText, setTitleText] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [ctaText, setCtaText] = React.useState("");
+  const [iconColor, setIconColor] = React.useState("#FFB800");
+
+  const [ctaType, setCtaType] = React.useState<CtaType>({
+    id: "button",
+    label: "Button",
+  });
+  const [image, setImage] = React.useState<ImageType>({ id: "product", label: "Product image" });
+  const [thumbnail, setThumbnail] = React.useState<Thumbnail | null>(null);
+  const [icon, setIcon] = React.useState<IconName>("heart-fill");
+  const [visibility, setVisibility] = React.useState<VisibilityType>({ id: "all", label: "All visitors" });
   // const cartItem = PLACEHOLDER_CART_ITEM;
   // const cardProduct = PLACEHOLDER_CARD_PRODUCT;
 
@@ -139,7 +166,31 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
       </section>
     </Layout>
   ) : (
-    <Form title="Create widget" products={products} />
+    <Form
+      title="Create widget"
+      products={products}
+      name={name}
+      titleText={titleText}
+      description={description}
+      ctaText={ctaText}
+      ctaType={ctaType}
+      image={image}
+      thumbnail={thumbnail}
+      icon={icon}
+      iconColor={iconColor}
+      visibility={visibility}
+      setThumbnail={setThumbnail}
+      setName={setName}
+      setTitleText={setTitleText}
+      setDescription={setDescription}
+      setCtaText={setCtaText}
+      setCtaType={setCtaType}
+      setImage={setImage}
+      setIcon={setIcon}
+      setIconColor={setIconColor}
+      setVisibility={setVisibility}
+      setView={setView}
+    />
   );
 };
 
@@ -153,19 +204,55 @@ type Product = {
   archived: boolean;
 };
 
-const Form = ({ title, products }: { title: string; products: Product[] }) => {
-  // const { bundle } = useBundleEditContext();
-  // const { covers } = bundle;
-  // const nativeType = "bundle";
-
-  const [name, setName] = React.useState("");
-  const [titleText, setTitleText] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [ctaText, setCtaText] = React.useState("");
-
-  const [image, setImage] = React.useState<{ id: string; label: string }>({ id: "product", label: "Product image" });
-  const [thumbnail, setThumbnail] = React.useState<Thumbnail | null>(null);
-
+const Form = ({
+  name,
+  title,
+  products,
+  titleText,
+  description,
+  ctaText,
+  ctaType,
+  image,
+  icon,
+  thumbnail,
+  iconColor,
+  visibility,
+  setName,
+  setTitleText,
+  setDescription,
+  setCtaText,
+  setCtaType,
+  setImage,
+  setIcon,
+  setThumbnail,
+  setIconColor,
+  setVisibility,
+  setView,
+}: {
+  title: string;
+  products: Product[];
+  name: string;
+  titleText: string;
+  description: string;
+  ctaText: string;
+  ctaType: CtaType;
+  image: ImageType;
+  thumbnail: Thumbnail | null;
+  visibility: VisibilityType;
+  icon: IconName;
+  iconColor: string;
+  setThumbnail: React.Dispatch<React.SetStateAction<Thumbnail | null>>;
+  setName: React.Dispatch<React.SetStateAction<string>>;
+  setTitleText: React.Dispatch<React.SetStateAction<string>>;
+  setDescription: React.Dispatch<React.SetStateAction<string>>;
+  setCtaText: React.Dispatch<React.SetStateAction<string>>;
+  setCtaType: React.Dispatch<React.SetStateAction<CtaType>>;
+  setImage: React.Dispatch<React.SetStateAction<ImageType>>;
+  setIcon: React.Dispatch<React.SetStateAction<IconName>>;
+  setIconColor: React.Dispatch<React.SetStateAction<string>>;
+  setVisibility: React.Dispatch<React.SetStateAction<VisibilityType>>;
+  setView: React.Dispatch<React.SetStateAction<"list" | "create" | "edit">>;
+}) => {
   const [selectedProductIds, setSelectedProductIds] = React.useState<{ value: string[]; error?: boolean }>({
     value: [],
   });
@@ -173,17 +260,22 @@ const Form = ({ title, products }: { title: string; products: Product[] }) => {
   const [universal, setUniversal] = React.useState(false);
 
   const uid = React.useId();
+
   return (
     <div className="fixed-aside" style={{ display: "contents" }}>
       <header className="sticky-top">
         <h1>{title}</h1>
         <div className="actions">
-          <Button onClick={() => {}} disabled={false}>
+          <Button
+            onClick={() => {
+              setView("list");
+            }}
+          >
             <Icon name="x-square" />
             Cancel
           </Button>
           <Button type="submit" color="black" onClick={() => {}} disabled={false}>
-            {false ? "Saving..." : "Save"}
+            TODO @sargam Add
           </Button>
           <Button color="accent">Publish</Button>
         </div>
@@ -305,7 +397,11 @@ const Form = ({ title, products }: { title: string; products: Product[] }) => {
                   { id: "link", label: "Link" },
                   { id: "none", label: "None" },
                 ]}
-                value={{ id: "button", label: "Button" }}
+                isMulti={false}
+                value={{ id: ctaType.id, label: ctaType.label }}
+                onChange={(selected) => {
+                  setCtaType(cast(selected));
+                }}
               />
             </fieldset>
           </section>
@@ -327,9 +423,7 @@ const Form = ({ title, products }: { title: string; products: Product[] }) => {
                 ]}
                 value={image}
                 onChange={(selected) => {
-                  if (selected && typeof selected === "object" && "id" in selected) {
-                    setImage({ id: selected.id, label: selected.label });
-                  }
+                  setImage(cast(selected));
                 }}
               />
               {image.id === "custom" && (
@@ -342,12 +436,26 @@ const Form = ({ title, products }: { title: string; products: Product[] }) => {
                 />
               )}
               {image.id === "icon" && (
-                <div>
-                  {["heart-fill"]}
-                  <Button>
-                    <Icon name="outline-check" />
-                  </Button>
-                </div>
+                <>
+                  <div>
+                    <Button onClick={() => setIcon("heart-fill")}>
+                      <Icon name="heart-fill" />
+                    </Button>
+                  </div>
+                  <fieldset>
+                    <legend>
+                      <label htmlFor={`${uid}-iconColor`}>Icon color</label>
+                    </legend>
+                    <div className="color-picker">
+                      <input
+                        id={`${uid}-iconColor`}
+                        value={iconColor}
+                        type="color"
+                        onChange={(evt) => setIconColor(evt.target.value)}
+                      />
+                    </div>
+                  </fieldset>
+                </>
               )}
             </fieldset>
           </section>
@@ -366,38 +474,72 @@ const Form = ({ title, products }: { title: string; products: Product[] }) => {
                   { id: "new", label: "New visitors" },
                   { id: "returning", label: "Returning visitors" },
                 ]}
-                value={{ id: "returning", label: "Returning visitors" }}
+                value={visibility}
+                onChange={(selected) => {
+                  setVisibility(cast(selected));
+                }}
               />
             </fieldset>
           </section>
         </form>
       </main>
-      <Preview />
+      <Preview
+        name={name}
+        titleText={titleText}
+        description={description}
+        ctaText={ctaText}
+        ctaType={ctaType}
+        image={image}
+        icon={icon}
+        iconColor={iconColor}
+      />
     </div>
   );
 };
 
-const Preview = () => (
-  <aside aria-label="Preview">
-    <header>
-      <h2>Preview</h2>
-      <WithTooltip tip="Preview">
-        <Button onClick={() => {}}>
-          <Icon name="arrow-diagonal-up-right" />
-        </Button>
-      </WithTooltip>
-    </header>
-    <div className="paragraphs flex aspect-square items-center justify-center rounded border border-black">
-      <SocialProofCard
-        ctaType="button"
-        imageType="icon"
-        iconName="heart-fill"
-        iconColor="#379EA3"
-        title="Join 6,239 members today!"
-        description="Get lifetime access to the community and start your journey now."
-        buttonText="Purchase now"
-        buttonUrl="#"
-      />
-    </div>
-  </aside>
-);
+const Preview = ({
+  titleText,
+  description,
+  ctaText,
+  ctaType,
+  image,
+  icon,
+  iconColor,
+}: {
+  name: string;
+  titleText: string;
+  description: string;
+  ctaText: string;
+  // TODO: @sargam proper types here
+  ctaType: CtaType;
+  image: ImageType;
+  icon: IconName;
+  iconColor: string;
+}) => {
+  const socialProofCardProps = useSocialProofCardPropsFromPreview({
+    titleText,
+    description,
+    ctaText,
+    ctaType: ctaType.id,
+    image,
+    icon,
+    iconColor,
+  });
+
+  return (
+    <aside aria-label="Preview">
+      <header>
+        <h2>Preview</h2>
+        <WithTooltip tip="Preview">
+          {/* TODO: @sargam add link */}
+          <Button onClick={() => {}}>
+            <Icon name="arrow-diagonal-up-right" />
+          </Button>
+        </WithTooltip>
+      </header>
+      <div className="paragraphs flex aspect-square items-center justify-center rounded border border-black">
+        <SocialProofCard {...socialProofCardProps} />
+      </div>
+    </aside>
+  );
+};
