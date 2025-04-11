@@ -459,7 +459,7 @@ Rails.application.routes.draw do
     resources :stripe_account_sessions, only: :create
 
     namespace :checkout do
-      resource :social, only: %i[show update index], controller: :social_proof
+      resource :social, only: %i[create show update index], controller: :social_proof
       resources :discounts, only: %i[index create update destroy] do
         get :paged, on: :collection
         get :statistics, on: :member

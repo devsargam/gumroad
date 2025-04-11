@@ -12,6 +12,11 @@ class Checkout::SocialProofPolicy < ApplicationPolicy
     index?
   end
 
+  def create?
+    user.role_admin_for?(seller) ||
+    user.role_marketing_for?(seller)
+  end
+
   def update?
     user.role_admin_for?(seller) ||
     user.role_marketing_for?(seller)

@@ -4,6 +4,7 @@ import { cast, createCast } from "ts-safe-cast";
 
 // import { PLACEHOLDER_CARD_PRODUCT, PLACEHOLDER_CART_ITEM } from "$app/utils/cart";
 // import { asyncVoid } from "$app/utils/promise";
+import { createSocialProof } from "$app/data/social_proof";
 import { Thumbnail } from "$app/data/thumbnails";
 import { assertResponseError } from "$app/utils/request";
 import { register } from "$app/utils/serverComponentUtil";
@@ -108,9 +109,11 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
   const thProps = useSortingTableDriver<SortKey>(sort, setSort);
   const [isSaving, setIsSaving] = React.useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       setIsSaving(true);
+      const response = await createSocialProof();
+      console.log(response);
       showAlert("Changes saved!", "success");
     } catch (e) {
       assertResponseError(e);
@@ -235,7 +238,7 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
             <Icon name="x-square" />
             Cancel
           </Button>
-          <Button color="accent" onClick={handleSave} disabled={isSaving}>
+          <Button color="accent" onClick={void handleSave} disabled={isSaving}>
             {isSaving ? "Saving changes..." : "Save changes"}
           </Button>
         </>
@@ -307,6 +310,7 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
       setIconColor={setIconColor}
       setVisibility={setVisibility}
       setView={setView}
+      save={handleSave}
     />
   );
 };
@@ -345,6 +349,7 @@ const Form = ({
   setIconColor,
   setVisibility,
   setView,
+  save,
 }: {
   title: string;
   products: Product[];
@@ -369,6 +374,7 @@ const Form = ({
   setIconColor: React.Dispatch<React.SetStateAction<string>>;
   setVisibility: React.Dispatch<React.SetStateAction<VisibilityType>>;
   setView: React.Dispatch<React.SetStateAction<"list" | "create" | "edit">>;
+  save: () => Promise<void>;
 }) => {
   const [selectedProductIds, setSelectedProductIds] = React.useState<{ value: string[]; error?: boolean }>({
     value: [],
@@ -391,7 +397,7 @@ const Form = ({
             <Icon name="x-square" />
             Cancel
           </Button>
-          <Button type="submit" color="black" onClick={() => {}} disabled={false}>
+          <Button type="submit" color="black" onClick={save} disabled={false}>
             TODO @sargam Add
           </Button>
           <Button color="accent">Publish</Button>
