@@ -19,8 +19,11 @@ import { useLoggedInUser } from "$app/components/LoggedInUser";
 import { ThumbnailEditor } from "$app/components/ProductEdit/ProductTab/ThumbnailEditor";
 import { Select } from "$app/components/Select";
 import { showAlert } from "$app/components/server-components/Alert";
+import { Sort, useSortingTableDriver } from "$app/components/useSortingTableDriver";
 import { WithTooltip } from "$app/components/WithTooltip";
 // const nativeTypeThumbnails = require.context("$assets/images/native_types/thumbnails/");
+
+export type SortKey = "name" | "clicks" | "conversion" | "revenue" | "status";
 
 // TODO: @sargam make this type more specific if possible
 // make this union discriminative
@@ -34,10 +37,54 @@ type VisibilityType = {
   label: "All visitors" | "New visitors" | "Returning visitors";
 };
 
+type Widget = {
+  id: string;
+  name: string;
+  clicks: number;
+  conversion: string;
+  revenue: string;
+  status: "Active" | "Paused";
+};
+
 const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: Product[] }) => {
   const loggedInUser = useLoggedInUser();
-  // TODO: @sargam remove this
-  const [view, setView] = React.useState<"list" | "create" | "edit">("create");
+  const [view, setView] = React.useState<"list" | "create" | "edit">("list");
+
+  // Add dummy data for the table
+  const dummyWidgets: Widget[] = [
+    {
+      id: "1",
+      name: "Recent purchases",
+      clicks: 1245,
+      conversion: "12.5%",
+      revenue: "$1,245.00",
+      status: "Active",
+    },
+    {
+      id: "2",
+      name: "Popular items",
+      clicks: 876,
+      conversion: "8.2%",
+      revenue: "$876.00",
+      status: "Active",
+    },
+    {
+      id: "3",
+      name: "Community favorites",
+      clicks: 532,
+      conversion: "5.8%",
+      revenue: "$532.00",
+      status: "Paused",
+    },
+    {
+      id: "4",
+      name: "Trending now",
+      clicks: 2103,
+      conversion: "15.3%",
+      revenue: "$2,103.00",
+      status: "Active",
+    },
+  ];
 
   const [name, setName] = React.useState("");
   const [titleText, setTitleText] = React.useState("");
@@ -55,7 +102,10 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
   const [visibility, setVisibility] = React.useState<VisibilityType>({ id: "all", label: "All visitors" });
   // const cartItem = PLACEHOLDER_CART_ITEM;
   // const cardProduct = PLACEHOLDER_CARD_PRODUCT;
-
+  const tableRef = React.useRef<HTMLTableElement>(null);
+  const isLoading = false;
+  const [sort, setSort] = React.useState<Sort<SortKey> | null>(null);
+  const thProps = useSortingTableDriver<SortKey>(sort, setSort);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const handleSave = () => {
@@ -85,27 +135,94 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
       hasAside
     >
       <section className="paragraphs">
-        <h2 className="mb-4 text-lg font-medium">Social proof settings</h2>
-        <p className="text-gray-500 text-sm">Configure your social proof settings to increase conversions.</p>
+        <table aria-live="polite" aria-busy={isLoading} ref={tableRef}>
+          <caption>Social Proof Widgets</caption>
+          <thead>
+            <tr>
+              <th />
+              <th {...thProps("name")} title="Sort by Name">
+                Name
+              </th>
+              <th {...thProps("clicks")} title="Sort by Clicks">
+                Clicks
+              </th>
+              <th {...thProps("conversion")} title="Sort by Conversion">
+                Conversion
+              </th>
+              <th {...thProps("revenue")} title="Sort by Revenue">
+                Revenue
+              </th>
+              <th {...thProps("status")} title="Sort by Status">
+                Status
+              </th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center justify-between rounded-md border p-4">
-            <div>
-              <h3 className="font-medium">Recent purchases</h3>
-              <p className="text-gray-500 text-sm">Show recent purchases to increase trust</p>
-            </div>
-            <div className="flex space-x-2">
-              <Button onClick={() => setView("edit")}>
-                <Icon name="pencil" />
-                Edit
-              </Button>
-              <Button color="danger">
-                <Icon name="trash2" />
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
+          <tbody>
+            {dummyWidgets.map((widget) => (
+              <tr key={widget.id}>
+                <td className="icon-cell">
+                  <Icon name="circle-fill" />
+                </td>
+                <td>
+                  <div>
+                    <h4>{widget.name}</h4>
+                  </div>
+                </td>
+                <td data-label="Name">{widget.name}</td>
+                <td data-label="Clicks" style={{ whiteSpace: "nowrap" }}>
+                  {widget.clicks.toLocaleString()}
+                </td>
+                <td data-label="Conversion" style={{ whiteSpace: "nowrap" }}>
+                  {widget.conversion}
+                </td>
+                <td data-label="Revenue" style={{ whiteSpace: "nowrap" }}>
+                  {widget.revenue}
+                </td>
+                <td data-label="Status" style={{ whiteSpace: "nowrap" }}>
+                  {widget.status === "Active" ? (
+                    <>
+                      <Icon name="circle-fill" /> Active
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="circle" /> Paused
+                    </>
+                  )}
+                </td>
+                <td data-label="Actions">
+                  <Button onClick={() => setView("edit")} disabled={!loggedInUser?.policies.checkout_form.update}>
+                    <Icon name="pencil" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+
+          <tfoot>
+            <tr>
+              <td colSpan={2}>Totals</td>
+              <td data-label="Total Clicks">
+                {dummyWidgets.reduce((sum, widget) => sum + widget.clicks, 0).toLocaleString()}
+              </td>
+              <td data-label="Average Conversion">
+                {(
+                  (dummyWidgets.reduce((sum, widget) => sum + parseFloat(widget.conversion), 0) / dummyWidgets.length) *
+                  100
+                ).toFixed(1)}
+                %
+              </td>
+              <td data-label="Total Revenue">
+                $
+                {dummyWidgets
+                  .reduce((sum, widget) => sum + parseFloat(widget.revenue.replace("$", "").replace(",", "")), 0)
+                  .toLocaleString()}
+              </td>
+              <td colSpan={2}></td>
+            </tr>
+          </tfoot>
+        </table>
       </section>
     </Layout>
   ) : view === "edit" ? (
