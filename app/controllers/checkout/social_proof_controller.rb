@@ -15,6 +15,38 @@ class Checkout::SocialProofController < Sellers::BaseController
   def create
     authorize [:checkout, :social_proof]
 
-    render json: { message: "Social proof created" }
+    for _ in 1..20 do
+      puts "Inside of create"
+    end
+
+    puts params[:selectedProductIds]
+    puts params[:universal]
+    puts params[:name]
+    puts params[:titleText]
+    puts params[:description]
+    puts params[:ctaText]
+    puts params[:ctaType][:id]
+    puts params[:image][:id]
+    puts params[:icon]
+    puts params[:iconColor]
+
+    social_proof = current_seller.social_proofs.build(
+      name: params[:name],
+      title_text: params[:titleText],
+      description: params[:description],
+      cta_text: params[:ctaText],
+      cta_type: params[:ctaType][:id],
+      image_type: params[:image][:id],
+      icon: params[:icon],
+      icon_color: params[:iconColor],
+      product_ids: params[:selectedProductIds],
+      universal: params[:universal]
+    )
+
+    if social_proof.save
+      render json: { success: true, message: "Social proof created successfully" }
+    else
+      render json: { success: false, errors: social_proof.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 end

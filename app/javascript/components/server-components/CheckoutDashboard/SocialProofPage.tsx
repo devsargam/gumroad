@@ -92,6 +92,7 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
   const [description, setDescription] = React.useState("");
   const [ctaText, setCtaText] = React.useState("");
   const [iconColor, setIconColor] = React.useState("#FFB800");
+  const [universal, setUniversal] = React.useState(false);
 
   const [ctaType, setCtaType] = React.useState<CtaType>({
     id: "button",
@@ -108,12 +109,26 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
   const [sort, setSort] = React.useState<Sort<SortKey> | null>(null);
   const thProps = useSortingTableDriver<SortKey>(sort, setSort);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [selectedProductIds, setSelectedProductIds] = React.useState<{ value: string[]; error?: boolean }>({
+    value: [],
+  });
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      const response = await createSocialProof();
-      console.log(response);
+      const payload = {
+        name,
+        titleText,
+        description,
+        ctaText,
+        ctaType,
+        image,
+        icon,
+        iconColor,
+        selectedProductIds: universal ? [] : selectedProductIds.value,
+        universal,
+      };
+      await createSocialProof(payload);
       showAlert("Changes saved!", "success");
     } catch (e) {
       assertResponseError(e);
@@ -238,8 +253,8 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
             <Icon name="x-square" />
             Cancel
           </Button>
-          <Button color="accent" onClick={void handleSave} disabled={isSaving}>
-            {isSaving ? "Saving changes..." : "Save changes"}
+          <Button type="submit" color="black" onClick={() => void handleSave()} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </>
       }
@@ -298,6 +313,8 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
       thumbnail={thumbnail}
       icon={icon}
       iconColor={iconColor}
+      universal={universal}
+      selectedProductIds={selectedProductIds}
       visibility={visibility}
       setThumbnail={setThumbnail}
       setName={setName}
@@ -308,6 +325,8 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
       setImage={setImage}
       setIcon={setIcon}
       setIconColor={setIconColor}
+      setUniversal={setUniversal}
+      setSelectedProductIds={setSelectedProductIds}
       setVisibility={setVisibility}
       setView={setView}
       save={handleSave}
@@ -337,6 +356,8 @@ const Form = ({
   icon,
   thumbnail,
   iconColor,
+  universal,
+  selectedProductIds,
   visibility,
   setName,
   setTitleText,
@@ -347,6 +368,8 @@ const Form = ({
   setIcon,
   setThumbnail,
   setIconColor,
+  setUniversal,
+  setSelectedProductIds,
   setVisibility,
   setView,
   save,
@@ -363,6 +386,8 @@ const Form = ({
   visibility: VisibilityType;
   icon: IconName;
   iconColor: string;
+  universal: boolean;
+  selectedProductIds: { value: string[]; error?: boolean };
   setThumbnail: React.Dispatch<React.SetStateAction<Thumbnail | null>>;
   setName: React.Dispatch<React.SetStateAction<string>>;
   setTitleText: React.Dispatch<React.SetStateAction<string>>;
@@ -374,13 +399,11 @@ const Form = ({
   setIconColor: React.Dispatch<React.SetStateAction<string>>;
   setVisibility: React.Dispatch<React.SetStateAction<VisibilityType>>;
   setView: React.Dispatch<React.SetStateAction<"list" | "create" | "edit">>;
+  setUniversal: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedProductIds: React.Dispatch<React.SetStateAction<{ value: string[]; error?: boolean }>>;
   save: () => Promise<void>;
 }) => {
-  const [selectedProductIds, setSelectedProductIds] = React.useState<{ value: string[]; error?: boolean }>({
-    value: [],
-  });
   const selectedProducts = products.filter(({ id }) => selectedProductIds.value.includes(id));
-  const [universal, setUniversal] = React.useState(false);
 
   const uid = React.useId();
 
@@ -397,7 +420,7 @@ const Form = ({
             <Icon name="x-square" />
             Cancel
           </Button>
-          <Button type="submit" color="black" onClick={save} disabled={false}>
+          <Button type="submit" color="black" onClick={() => void save()} disabled={false}>
             TODO @sargam Add
           </Button>
           <Button color="accent">Publish</Button>
