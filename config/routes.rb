@@ -1111,5 +1111,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :social_proof_widgets do
+    member do
+      post :link_products
+      delete :unlink_products
+    end
+  end
+
   get "/(*path)", to: "application#e404_page" unless Rails.env.development?
 end

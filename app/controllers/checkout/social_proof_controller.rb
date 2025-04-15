@@ -15,38 +15,46 @@ class Checkout::SocialProofController < Sellers::BaseController
   def create
     authorize [:checkout, :social_proof]
 
-    for _ in 1..20 do
-      puts "Inside of create"
-    end
+    social_proof_widget_params
+    puts "social_proof_widget_params"
+    puts social_proof_widget_params
+    puts "-----------------------------------"
 
-    puts params[:selectedProductIds]
-    puts params[:universal]
-    puts params[:name]
-    puts params[:titleText]
-    puts params[:description]
-    puts params[:ctaText]
-    puts params[:ctaType][:id]
-    puts params[:image][:id]
-    puts params[:icon]
-    puts params[:iconColor]
+    social_proof_widget = SocialProofWidget.new(social_proof_widget_params)
+    social_proof_widget.links = current_seller.links.alive
 
-    social_proof = current_seller.social_proofs.build(
-      name: params[:name],
-      title_text: params[:titleText],
-      description: params[:description],
-      cta_text: params[:ctaText],
-      cta_type: params[:ctaType][:id],
-      image_type: params[:image][:id],
-      icon: params[:icon],
-      icon_color: params[:iconColor],
-      product_ids: params[:selectedProductIds],
-      universal: params[:universal]
-    )
-
-    if social_proof.save
-      render json: { success: true, message: "Social proof created successfully" }
+    if social_proof_widget.save
+      puts "social_proof_widget.save"
+      render json: {
+        success: true,
+        social_proof_widgets: [social_proof_widget].map { |widget| presenter.social_proof_widget_props(widget) }
+      }
     else
-      render json: { success: false, errors: social_proof.errors.full_messages }, status: :unprocessable_entity
+      puts "social_proof_widget.errors"
+      puts social_proof_widget.errors.full_messages
+      render json: {
+        success: false,
+        error_message: social_proof_widget.errors.full_messages.first
+      }
     end
   end
+
+  private
+    def parse_date_times
+      # social_proof_widget_params[:valid_at] = Date.parse(social_proof_widget_params[:valid_at]) if social_proof_widget_params[:valid_at].present?
+      # social_proof_widget_params[:expires_at] = Date.parse(social_proof_widget_params[:expires_at]) if social_proof_widget_params[:expires_at].present?
+    end
+
+    def social_proof_widget_params
+      params.permit(
+        :name,
+        :universal,
+        :titleText,
+        :description,
+        :ctaText,
+        :ctaType,
+        :image,
+        :icon
+      )
+    end
 end
