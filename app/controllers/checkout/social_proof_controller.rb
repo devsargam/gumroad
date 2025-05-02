@@ -19,8 +19,19 @@ class Checkout::SocialProofController < Sellers::BaseController
     puts "social_proof_widget_params"
     puts social_proof_widget_params
     puts "-----------------------------------"
+    puts social_proof_widget_params[:cta_type]
+    puts social_proof_widget_params[:image_type]
 
-    social_proof_widget = SocialProofWidget.new(social_proof_widget_params)
+    social_proof_widget = SocialProofWidget.new({
+                                                  name: social_proof_widget_params[:name],
+                                                  title: social_proof_widget_params[:title],
+                                                  description: social_proof_widget_params[:description],
+                                                  cta_text: social_proof_widget_params[:cta_text],
+                                                  cta_type: social_proof_widget_params[:cta_type],
+                                                  image_type: social_proof_widget_params[:image_type],
+                                                  icon_name: social_proof_widget_params[:icon],
+                                                  universal: social_proof_widget_params[:universal]
+                                                })
     social_proof_widget.links = current_seller.links.alive
 
     if social_proof_widget.save
@@ -48,13 +59,15 @@ class Checkout::SocialProofController < Sellers::BaseController
     def social_proof_widget_params
       params.permit(
         :name,
-        :universal,
-        :titleText,
+        :title,
         :description,
-        :ctaText,
-        :ctaType,
-        :image,
-        :icon
+        :cta_text,
+        :cta_type,
+        :image_type,
+        :icon,
+        :icon_color,
+        :selected_product_ids,
+        :universal
       )
     end
 end

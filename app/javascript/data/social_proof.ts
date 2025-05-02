@@ -2,14 +2,14 @@ import { request } from "$app/utils/request";
 
 type SocialProofPlayload = {
   name: string;
-  titleText: string;
+  title: string;
   description: string;
-  ctaText: string;
-  ctaType: { id: "button" | "link" | "none"; label: string };
-  image: { id: "product" | "custom" | "icon" | "none"; label: string };
+  cta_text: string;
+  cta_type: "button" | "link" | "none";
+  image_type: "product" | "custom" | "icon" | "none";
   icon: string;
-  iconColor: string;
-  selectedProductIds: string[];
+  icon_color: string;
+  selected_product_ids: string[];
   universal: boolean;
 };
 

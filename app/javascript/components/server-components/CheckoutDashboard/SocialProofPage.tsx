@@ -118,14 +118,14 @@ const SocialProofPage = ({ pages = [], products }: { pages?: Page[]; products: P
       setIsSaving(true);
       const payload = {
         name,
-        titleText,
+        title: titleText,
         description,
-        ctaText,
-        ctaType,
-        image,
+        cta_text: ctaText,
+        cta_type: ctaType.id,
+        image_type: image.id,
         icon,
-        iconColor,
-        selectedProductIds: universal ? [] : selectedProductIds.value,
+        icon_color: iconColor,
+        selected_product_ids: universal ? [] : selectedProductIds.value,
         universal,
       };
       await createSocialProof(payload);
